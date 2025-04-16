@@ -1,6 +1,6 @@
 def concatene(a: set[str], b: set[str]) -> set[str]:
     """
-        Concatene les mots des ensembles a et b
+    Concatene les mots des ensembles a et b
     """
     resultat: set[str] = set()
 
@@ -13,7 +13,7 @@ def concatene(a: set[str], b: set[str]) -> set[str]:
 
 def puis(langage: set[str], n: int) -> set[str]:
     """
-        Renvoie le langage `langage^n`
+    Renvoie le langage `langage^n`
     """
     resultat: set[str] = {""}
 
@@ -27,14 +27,15 @@ def puis(langage: set[str], n: int) -> set[str]:
 # alors que l'étoile d'un langage représente une infinitée de mots
 
 
-def tousmots(langage: set[str], n: int) -> set[str]:
+def tousmots(alphabet: set[str], n: int) -> set[str]:
     """
-        Réalise l'étoile du langage passé en paramètre pour tous les mots qui ont une longeur inférieurs ou égale à n
+    Réalise l'étoile de l'alphabet passé en paramètre pour tous les mots qui ont une longeur inférieurs ou égale à n
     """
 
     resultat: set[str] = set()
-    
-    
+
+    for i in range(n + 1):
+        resultat |= puis(alphabet, i)
 
     return resultat
 
