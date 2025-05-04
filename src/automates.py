@@ -600,6 +600,76 @@ def mirroir(auto: dict) -> dict:
 
     return auto_mirroir
 
+def position_classe(classes: dict, etat: int):
+    for key, etats in classes.items():
+        if etat in etats:
+            return key
+
+def equivalence(auto: dict) -> list:
+    classes = {
+        'AUTRES': auto['etats'] - auto['F'],
+        'FINAUX': auto['F']
+    }
+    taille = 0
+
+    while taille != len(classes):
+        taille = len(classes)
+        storage = {}
+
+        for lettre in auto['alphabet']:
+            for transition in auto['transitions']:
+                if transition[1] == lettre:
+                    if transition[0] not in storage:
+                        storage[transition[0]] = [position_classe(classes, transition[0])]
+                    position = position_classe(classes, transition[2])
+                    storage[transition[0]].append((lettre, position))
+
+        classes = {}
+
+        for etat, equivalence in storage.items():
+            if tuple(equivalence) not in classes:
+                classes[tuple(equivalence)] = []
+            classes[tuple(equivalence)].append(etat)
+    resultat = []
+    for classe in classes.values():
+        resultat.append(tuple(classe))
+
+    return resultat
+
+def vers_classe(etat: int, classes: list) -> tuple:
+    for classe in classes:
+        if etat in classe:
+            return classe
+
+def minimise(auto: dict):
+    classes_equivalences = equivalence(auto)
+
+    initiaux = set()
+    finaux = set()
+    
+    for initial in auto['I']:
+        initiaux.add(vers_classe(initial, classes_equivalences))
+
+    for final in auto['F']:
+        finaux.add(vers_classe(final, classes_equivalences))
+
+    transitions = []
+
+    for transition in auto['transitions']:
+        nouvelle_transition = [vers_classe(transition[0], classes_equivalences), transition[1], vers_classe(transition[2], classes_equivalences)]
+
+        if nouvelle_transition not in transitions: 
+            transitions.append(nouvelle_transition)
+    
+    return {
+        'alphabet': set(auto['alphabet']),
+        'etats': set(classes_equivalences),
+        'I': initiaux,
+        'F': finaux,
+        'transitions': transitions
+    }
+
+
 if __name__ == "__main__":
     #defauto()
 
