@@ -73,6 +73,35 @@ def determinise(auto: dict) -> dict:
         else: transi_vus.append([transition[0], transition[1]])
 
 
+def renommage(auto: dict) -> dict:
+    auto_renom = {
+        "alphabet": auto['alphabet'],
+        "etats": [],
+        "transitions": [],
+        "I": set(),
+        "F": set()
+    }
+    liste_etats = list(auto["etats"])
+
+    auto_renom['I'].add(liste_etats.index(auto['I'][0]))
+
+    for etat_final in auto['F']:
+        auto_renom['F'].add(liste_etats.index(etat_final))
+
+    for i in range(len(liste_etats)):
+        auto_renom['etats'].append(i)
+    
+    for transition in auto['transitions']:
+        etat_i, etat_f = liste_etats.index(transition[0]), liste_etats.index(transition[2])
+        transition_renom = [auto_renom['etats'][etat_i], transition[1], auto_renom['etats'][etat_f]]
+
+        auto_renom["transitions"].append(transition_renom)
+
+    auto_renom["etats"] = set(auto_renom["etats"])
+
+    return auto_renom
+
+
 if __name__ == "__main__":
     auto = {
         "alphabet": {"a", "b"},
@@ -112,3 +141,11 @@ if __name__ == "__main__":
 
     print(deterministe(auto0))
     print(deterministe(auto2))
+
+    auto2_det = {
+        'alphabet': {'a', 'b'}, 'I': [[0]],
+        'transitions': [[[0], 'a', [0, 1]], [[0, 1], 'a', [0, 1]], [[0, 1], 'b', [1]], [[1], 'a', [1]], [[1], 'b', [1]]],
+        'etats': [[0], [0, 1], [1]], 'F': [[0, 1], [1]]
+    }
+
+    print(renommage(auto2_det)) # à modifier par print(renommage(determinise(auto2_det)))
