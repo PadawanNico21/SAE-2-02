@@ -27,7 +27,51 @@ def liremot(transitions: list[list[int | str]], etats: set[int], mot: str) -> se
 
 def accepte(auto: dict, mot: str) -> bool:
     return len(liremot(auto['transitions'], auto['I'], mot) & auto['F']) > 0
-    
+
+
+def deterministe(auto: dict) -> bool:
+    transitions_vus = dict()
+
+    for etat in auto['etats']:
+        transitions_vus[etat] = dict()
+
+        for lettre in auto['alphabet']:
+            transitions_vus[etat][lettre] = 0
+
+    for transition in auto['transitions']:
+        etat, lettre = transition[0], transition[1]
+
+        if transitions_vus[etat][lettre] == 0:
+            transitions_vus[etat][lettre] = 1 
+
+        else : return False
+
+    return True
+
+
+def determinise(auto: dict) -> dict:
+    auto_det = {
+        "alphabet": auto['alphabet'],
+        "etats": set(),
+        "transitions": [],
+        "I": [],
+        "F": []
+    }
+
+    if isinstance(auto['I'], list):
+        auto_det['I'].append(auto['I'])
+
+    transi_vus = []
+
+    for transition in auto['transitions']:
+        transi = [transition[0], transition[1]]
+
+        if transi in transi_vus:
+            # jsp
+            pass
+
+        else: transi_vus.append([transition[0], transition[1]])
+
 
 if __name__ == "__main__":
     auto = {
@@ -41,3 +85,30 @@ if __name__ == "__main__":
     print("liremot:", liremot(auto["transitions"], auto["etats"], "aba"))
     print("accepte aba:", accepte(auto, "aba"))
     print("accepte ba:", accepte(auto, "ba"))
+
+    auto0 ={
+        "alphabet":['a','b'],
+        "etats": [0,1,2,3],
+        "transitions":[[0,'a',1],[1,'a',1],[1,'b',2],[2,'a',3]], 
+        "I":[0],
+        "F":[3]
+    }
+
+    auto1 ={
+        "alphabet":['a','b'],
+        "etats": [0,1],
+        "transitions":[[0,'a',0],[0,'b',1],[1,'b',1],[1,'a',1]], 
+        "I":[0],
+        "F":[1]
+    }
+
+    auto2={
+        "alphabet":['a','b'],
+        "etats": [0,1],
+        "transitions":[[0,'a',0],[0,'a',1],[1,'b',1],[1,'a',1]], 
+        "I":[0],
+        "F":[1]
+    }
+
+    print(deterministe(auto0))
+    print(deterministe(auto2))
