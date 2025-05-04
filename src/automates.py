@@ -2,9 +2,12 @@ def defauto():
     # A faire
     pass
 
-def lirelettre(transitions: list[list[int | str]], etats: set[int], lettre: str) -> set[int]:
+
+def lirelettre(
+    transitions: list[list[int | str]], etats: set[int], lettre: str
+) -> set[int]:
     """
-        Renvoie les états dans lesquels on peut arriver en partant d'un état de `etats` et en lisant la lettre `lettre`
+    Renvoie les états dans lesquels on peut arriver en partant d'un état de `etats` et en lisant la lettre `lettre`
     """
     resultat: set[int] = set()
 
@@ -13,6 +16,7 @@ def lirelettre(transitions: list[list[int | str]], etats: set[int], lettre: str)
             resultat.add(transition[2])
 
     return resultat
+
 
 def liremot(transitions: list[list[int | str]], etats: set[int], mot: str) -> set[int]:
     etats_suivants = set(etats)
@@ -26,51 +30,74 @@ def liremot(transitions: list[list[int | str]], etats: set[int], mot: str) -> se
 
 
 def accepte(auto: dict, mot: str) -> bool:
-    return len(liremot(auto['transitions'], auto['I'], mot) & auto['F']) > 0
+    return len(liremot(auto["transitions"], auto["I"], mot) & auto["F"]) > 0
 
 
 def deterministe(auto: dict) -> bool:
     transitions_vus = dict()
 
-    for etat in auto['etats']:
+    for etat in auto["etats"]:
         transitions_vus[etat] = dict()
 
-        for lettre in auto['alphabet']:
+        for lettre in auto["alphabet"]:
             transitions_vus[etat][lettre] = 0
 
-    for transition in auto['transitions']:
+    for transition in auto["transitions"]:
         etat, lettre = transition[0], transition[1]
 
         if transitions_vus[etat][lettre] == 0:
-            transitions_vus[etat][lettre] = 1 
+            transitions_vus[etat][lettre] = 1
 
-        else : return False
+        else:
+            return False
 
     return True
 
 
 def determinise(auto: dict) -> dict:
-    auto_det = {
-        "alphabet": auto['alphabet'],
-        "etats": set(),
-        "transitions": [],
-        "I": [],
-        "F": []
+
+    depart = frozenset(auto["I"])
+
+    a_faire = [depart]
+    faits = set([depart])
+
+    transitions = list(auto["transitions"])
+
+    nouvelles_transtions = []
+
+    while len(a_faire) > 0:
+        etat = a_faire.pop()
+
+        for lettre in auto["alphabet"]:
+            nouvel_etat = set()
+            for t in transitions:
+                if t[0] in etat and t[1] == lettre:
+                    nouvel_etat.add(t[2])
+            val = frozenset(nouvel_etat)
+            if len(val) == 0:
+                continue
+
+            transitions.append([etat, lettre, val])
+
+            nouvelles_transtions.append([etat, lettre, val])
+
+            if val not in faits:
+                a_faire.append(val)
+                faits.add(val)
+
+    etats_finaux = set()
+
+    for transition in nouvelles_transtions:
+        if len(auto["F"] & transition[2]) > 0:
+            etats_finaux.add(transition[2])
+
+    return {
+        "alphabet": set(auto["alphabet"]),
+        "etats": faits,
+        "transitions": nouvelles_transtions,
+        "I": [depart],
+        "F": etats_finaux,
     }
-
-    if isinstance(auto['I'], list):
-        auto_det['I'].append(auto['I'])
-
-    transi_vus = []
-
-    for transition in auto['transitions']:
-        transi = [transition[0], transition[1]]
-
-        if transi in transi_vus:
-            # jsp
-            pass
-
-        else: transi_vus.append([transition[0], transition[1]])
 
 
 def renommage(auto: dict) -> dict:
@@ -115,28 +142,28 @@ if __name__ == "__main__":
     print("accepte aba:", accepte(auto, "aba"))
     print("accepte ba:", accepte(auto, "ba"))
 
-    auto0 ={
-        "alphabet":['a','b'],
-        "etats": [0,1,2,3],
-        "transitions":[[0,'a',1],[1,'a',1],[1,'b',2],[2,'a',3]], 
-        "I":[0],
-        "F":[3]
+    auto0 = {
+        "alphabet": ["a", "b"],
+        "etats": [0, 1, 2, 3],
+        "transitions": [[0, "a", 1], [1, "a", 1], [1, "b", 2], [2, "a", 3]],
+        "I": [0],
+        "F": [3],
     }
 
-    auto1 ={
-        "alphabet":['a','b'],
-        "etats": [0,1],
-        "transitions":[[0,'a',0],[0,'b',1],[1,'b',1],[1,'a',1]], 
-        "I":[0],
-        "F":[1]
+    auto1 = {
+        "alphabet": ["a", "b"],
+        "etats": [0, 1],
+        "transitions": [[0, "a", 0], [0, "b", 1], [1, "b", 1], [1, "a", 1]],
+        "I": [0],
+        "F": [1],
     }
 
-    auto2={
-        "alphabet":['a','b'],
-        "etats": [0,1],
-        "transitions":[[0,'a',0],[0,'a',1],[1,'b',1],[1,'a',1]], 
-        "I":[0],
-        "F":[1]
+    auto2 = {
+        "alphabet": ["a", "b"],
+        "etats": [0, 1],
+        "transitions": [[0, "a", 0], [0, "a", 1], [1, "b", 1], [1, "a", 1]],
+        "I": {0, 1},
+        "F": {1},
     }
 
     print(deterministe(auto0))
@@ -148,4 +175,4 @@ if __name__ == "__main__":
         'etats': [[0], [0, 1], [1]], 'F': [[0, 1], [1]]
     }
 
-    print(renommage(auto2_det)) # à modifier par print(renommage(determinise(auto2_det)))
+    print(renommage(determinise(auto2_det))) # à modifier par print(renommage(determinise(auto2_det)))
