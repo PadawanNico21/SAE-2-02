@@ -50,27 +50,52 @@ def deterministe(auto: dict) -> bool:
 
 
 def determinise(auto: dict) -> dict:
-    auto_det = {
-        "alphabet": auto['alphabet'],
-        "etats": set(),
-        "transitions": [],
-        "I": [],
-        "F": []
+    
+    a_faire = []
+    faits = set()
+
+    transitions = list(auto['transitions'])
+
+    nouvelles_transtions = []
+
+    for etat in auto['I']:
+        val = frozenset([etat])
+        a_faire.append(val)
+        faits.add(val)
+
+    while len(a_faire) > 0:
+        etat = a_faire.pop()
+
+        for lettre in auto['alphabet']:
+            nouvel_etat = set()
+            for t in transitions:
+                if t[0] in etat and t[1] == lettre:
+                    nouvel_etat.add(t[2])
+            val = frozenset(nouvel_etat)
+            if len(val) == 0:
+                continue
+
+            transitions.append([etat, lettre, val])
+
+            nouvelles_transtions.append([etat, lettre, val])
+
+            if val not in faits:
+                a_faire.append(val)
+                faits.add(val)
+    
+    etats_finaux = set()
+
+    for transition in nouvelles_transtions:
+        if len(auto['F'] & transition[2]) > 0:
+            etats_finaux.add(transition[2])
+
+    return {
+        "alphabet": set(auto['alphabet']),
+        "etats": faits,
+        "transtitions": nouvelles_transtions,
+        "I": set(auto['I']),
+        "F": etats_finaux,
     }
-
-    if isinstance(auto['I'], list):
-        auto_det['I'].append(auto['I'])
-
-    transi_vus = []
-
-    for transition in auto['transitions']:
-        transi = [transition[0], transition[1]]
-
-        if transi in transi_vus:
-            # jsp
-            pass
-
-        else: transi_vus.append([transition[0], transition[1]])
 
 
 if __name__ == "__main__":
@@ -107,8 +132,10 @@ if __name__ == "__main__":
         "etats": [0,1],
         "transitions":[[0,'a',0],[0,'a',1],[1,'b',1],[1,'a',1]], 
         "I":[0],
-        "F":[1]
+        "F":{1}
     }
 
     print(deterministe(auto0))
     print(deterministe(auto2))
+
+    print(determinise(auto2))
