@@ -110,48 +110,51 @@ def inter(auto1: dict, auto2: dict) -> dict:
     if not deterministe(auto2):
         auto2 = renommage(determinise(auto2))
     
-    auto_inter = {
-        "alphabet": auto1['alphabet'],
-        "etats": set(),
-        "transitions": [],
-        "I": set(),
-        "F": set()
-    }
-    
     transitions = []
-    debut_transi_a1 = debut_transition(auto1)
-    debut_transi_a2 = debut_transition(auto2)
+    initiaux = set()
+    finaux = set()
 
-    for i in range(len(auto1['transitions'])):
-        if debut_transi_a1[i] in debut_transi_a2:
-            j = debut_transi_a2.index(debut_transi_a1[i])
-            transition1 = auto1['transitions'][i]
-            transition2 = auto2['transitions'][j]
-            lettre = transition1[1]
+    for i1 in auto1['I']:
+        for i2 in auto2['I']:
+                initiaux.add((i1, i2))
 
-            transitions.append([(transition1[0], transition2[0]), lettre, (transition1[2], transition2[2])])
-    
-    auto_inter['transitions'] = transitions
+    sorties = set(initiaux)
+
+    ajout = True
+    while ajout:
+        ajout = False
+        for transition_a in auto1['transitions']:
+            for transition_b in auto2['transitions']:
+                if transition_a[1] == transition_b[1]:
+                    if (transition_a[0], transition_b[0]) not in sorties:
+                        continue
+                    sortie = (transition_a[2], transition_b[2])
+                    ajout = sortie not in sorties
+                    sorties.add((transition_a[2], transition_b[2]))
+
+    for transition_a in auto1['transitions']:
+        for transition_b in auto2['transitions']:
+            if transition_a[1] == transition_b[1]:
+                entree =(transition_a[0], transition_b[0])
+
+                if entree in sorties:
+                    transitions.append([entree, transition_a[1], (transition_a[2], transition_b[2])])
+
+
+    for f1 in auto1['F']:
+        for f2 in auto2['F']:
+            finaux.add((f1, f2))
+
+    auto_inter = {
+        "alphabet": auto1['alphabet'] & auto2['alphabet'],
+        "etats": set(),
+        "transitions": transitions,
+        "I": initiaux,
+        "F": finaux
+    }
+
     ajoute_etats(auto_inter)
 
-    # Un seul etat car déterministe
-    for etat_i in auto1['I']:
-        etat_initial1 = etat_i
-
-    for etat_i in auto2['I']:
-        etat_initial2 = etat_i
-
-    auto_inter['I'].add((etat_initial1, etat_initial2))
-
-    for etat_final in auto1['F']:
-        for transition in auto_inter['transitions']:
-
-            if transition[0][0] == etat_final and transition[0][1] in auto2['F']:
-                auto_inter['F'].add((etat_final, transition[0][1]))
-
-            elif transition[2][0] == etat_final and transition[2][1] in auto2['F']:
-                auto_inter['F'].add((etat_final, transition[2][1]))
-    
     return auto_inter
 
 
@@ -241,4 +244,4 @@ if __name__ == "__main__":
     }
 
     print("\nIntersection :")
-    print(inter(auto4,auto5))
+    print((inter(auto4,auto5)))
