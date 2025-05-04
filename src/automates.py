@@ -51,17 +51,14 @@ def deterministe(auto: dict) -> bool:
 
 def determinise(auto: dict) -> dict:
     
-    a_faire = []
-    faits = set()
+    depart = frozenset(auto['I'])
+
+    a_faire = [depart]
+    faits = set([depart])
 
     transitions = list(auto['transitions'])
 
     nouvelles_transtions = []
-
-    for etat in auto['I']:
-        val = frozenset([etat])
-        a_faire.append(val)
-        faits.add(val)
 
     while len(a_faire) > 0:
         etat = a_faire.pop()
@@ -93,7 +90,7 @@ def determinise(auto: dict) -> dict:
         "alphabet": set(auto['alphabet']),
         "etats": faits,
         "transtitions": nouvelles_transtions,
-        "I": set(auto['I']),
+        "I": depart,
         "F": etats_finaux,
     }
 
@@ -131,7 +128,7 @@ if __name__ == "__main__":
         "alphabet":['a','b'],
         "etats": [0,1],
         "transitions":[[0,'a',0],[0,'a',1],[1,'b',1],[1,'a',1]], 
-        "I":[0],
+        "I": {0,1},
         "F":{1}
     }
 
