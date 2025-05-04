@@ -307,18 +307,6 @@ def inter(auto1: dict, auto2: dict) -> dict:
     return auto_inter
 
 
-def debut_transition(auto: dict) -> list:
-    """
-    Prend en paramètre un automate et renvoie une liste des débuts de transition: [p, a]
-    """
-    debut_transi = []
-
-    for transition in auto['transitions']:
-        debut_transi.append(transition[:2])
-    
-    return debut_transi
-
-
 def ajoute_etats(auto: dict) -> dict:
     """
     Prend en paramètre un automate avec des transitions et rajoute ses etats manquants 
@@ -466,6 +454,34 @@ def ajoute_etats(auto: dict) -> dict:
         auto['etats'].add(transition[2]) 
 
 
+def difference(auto1: dict, auto2: dict) -> dict:
+    if not complet(auto1):
+        auto1 = complete(auto1)
+    if not complet(auto2):
+        auto2 = complete(auto2)
+
+    auto_difference = inter(auto1, auto2)
+
+    liste_etats_finaux = list(auto_difference['F'])
+    i = 0
+    fin = len(liste_etats_finaux)
+
+    while i < fin:
+        etat_final = liste_etats_finaux[i]
+
+        if etat_final[1] in auto2['F']:
+            auto_difference['F'].remove(etat_final)
+        
+        i += 1
+    
+    for transition in auto_difference['transitions']:
+        if transition[0][0] in auto1['F'] and transition[0][1] not in auto2['F']:
+            auto_difference['F'].add(transition[0])
+        elif transition[2][0] in auto1['F'] and transition[2][1] not in auto2['F']:
+            auto_difference['F'].add(transition[2])
+
+    return auto_difference
+
 
 def langage_accept(automate: dict, n: int) -> set:
     initial = {}
@@ -585,7 +601,7 @@ def mirroir(auto: dict) -> dict:
     return auto_mirroir
 
 if __name__ == "__main__":
-    defauto()
+    #defauto()
 
     auto = {
         "alphabet": {"a", "b"},
@@ -614,7 +630,6 @@ if __name__ == "__main__":
         "I": {0},
         "F": {2},
     }
-
     print("lirelettre:", lirelettre(auto["transitions"], auto["etats"], "a"))
     print("liremot:", liremot(auto["transitions"], auto["etats"], "aba"))
     print("accepte aba:", accepte(auto, "aba"))
@@ -686,4 +701,7 @@ if __name__ == "__main__":
     }
 
     print("\nIntersection :")
-    print((inter(auto4,auto5)))
+    print((inter(auto4, auto5)))
+
+    print("\nDifférence")
+    print(difference(auto4, auto5))
