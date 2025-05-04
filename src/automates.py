@@ -164,7 +164,6 @@ def lirelettre(
     return resultat
 
 
-
 def liremot(transitions: list[list[int | str]], etats: set[int], mot: str) -> set[int]:
     etats_suivants = set(etats)
 
@@ -177,169 +176,7 @@ def liremot(transitions: list[list[int | str]], etats: set[int], mot: str) -> se
 
 
 def accepte(auto: dict, mot: str) -> bool:
-    return len(liremot(auto['transitions'], auto['I'], mot) & auto['F']) > 0
-
-
-
-def deterministe(auto: dict) -> bool:
-    transitions_vus = dict()
-
-    for etat in auto["etats"]:
-        transitions_vus[etat] = dict()
-
-        for lettre in auto["alphabet"]:
-            transitions_vus[etat][lettre] = 0
-
-    for transition in auto["transitions"]:
-        etat, lettre = transition[0], transition[1]
-
-        if transitions_vus[etat][lettre] == 0:
-            transitions_vus[etat][lettre] = 1
-
-        else:
-            return False
-
-    return True
-
-
-def determinise(auto: dict) -> dict:
-
-    depart = frozenset(auto["I"])
-
-    a_faire = [depart]
-    faits = set([depart])
-
-    transitions = list(auto["transitions"])
-
-    nouvelles_transtions = []
-
-    while len(a_faire) > 0:
-        etat = a_faire.pop()
-
-        for lettre in auto["alphabet"]:
-            nouvel_etat = set()
-            for t in transitions:
-                if t[0] in etat and t[1] == lettre:
-                    nouvel_etat.add(t[2])
-            val = frozenset(nouvel_etat)
-            if len(val) == 0:
-                continue
-
-            transitions.append([etat, lettre, val])
-
-            nouvelles_transtions.append([etat, lettre, val])
-
-            if val not in faits:
-                a_faire.append(val)
-                faits.add(val)
-
-    etats_finaux = set()
-
-    for transition in nouvelles_transtions:
-        if len(auto["F"] & transition[2]) > 0:
-            etats_finaux.add(transition[2])
-
-    return {
-        "alphabet": set(auto["alphabet"]),
-        "etats": faits,
-        "transitions": nouvelles_transtions,
-        "I": [depart],
-        "F": etats_finaux,
-    }
-
-
-def renommage(auto: dict) -> dict:
-    auto_renom = {
-        "alphabet": auto['alphabet'],
-        "etats": [],
-        "transitions": [],
-        "I": set(),
-        "F": set()
-    }
-    liste_etats = list(auto["etats"])
-
-    for etat_initial in auto['I']:
-         auto_renom['I'].add(liste_etats.index(etat_initial))
-
-    for etat_final in auto['F']:
-        auto_renom['F'].add(liste_etats.index(etat_final))
-
-    for i in range(len(liste_etats)):
-        auto_renom['etats'].append(i)
-    
-    for transition in auto['transitions']:
-        etat_i, etat_f = liste_etats.index(transition[0]), liste_etats.index(transition[2])
-        transition_renom = [auto_renom['etats'][etat_i], transition[1], auto_renom['etats'][etat_f]]
-
-        auto_renom["transitions"].append(transition_renom)
-
-    auto_renom["etats"] = set(auto_renom["etats"])
-
-    return auto_renom
-
-
-def inter(auto1: dict, auto2: dict) -> dict:
-    if not deterministe(auto1):
-        auto1 = renommage(determinise(auto1))
-
-    if not deterministe(auto2):
-        auto2 = renommage(determinise(auto2))
-    
-    transitions = []
-    initiaux = set()
-    finaux = set()
-
-    for i1 in auto1['I']:
-        for i2 in auto2['I']:
-                initiaux.add((i1, i2))
-
-    sorties = set(initiaux)
-
-    ajout = True
-    while ajout:
-        ajout = False
-        for transition_a in auto1['transitions']:
-            for transition_b in auto2['transitions']:
-                if transition_a[1] == transition_b[1]:
-                    if (transition_a[0], transition_b[0]) not in sorties:
-                        continue
-                    sortie = (transition_a[2], transition_b[2])
-                    ajout = sortie not in sorties
-                    sorties.add((transition_a[2], transition_b[2]))
-
-    for transition_a in auto1['transitions']:
-        for transition_b in auto2['transitions']:
-            if transition_a[1] == transition_b[1]:
-                entree =(transition_a[0], transition_b[0])
-
-                if entree in sorties:
-                    transitions.append([entree, transition_a[1], (transition_a[2], transition_b[2])])
-
-
-    for f1 in auto1['F']:
-        for f2 in auto2['F']:
-            finaux.add((f1, f2))
-
-    auto_inter = {
-        "alphabet": auto1['alphabet'] & auto2['alphabet'],
-        "etats": set(),
-        "transitions": transitions,
-        "I": initiaux,
-        "F": finaux
-    }
-
-    ajoute_etats(auto_inter)
-
-    return auto_inter
-
-
-def ajoute_etats(auto: dict) -> dict:
-    """
-    Prend en paramètre un automate avec des transitions et rajoute ses etats manquants 
-    """
-    for transition in auto['transitions']:
-        auto['etats'].add(transition[0])
-        auto['etats'].add(transition[2]) 
+    return len(liremot(auto["transitions"], auto["I"], mot) & auto["F"]) > 0
 
 
 def deterministe(auto: dict) -> bool:
@@ -411,26 +248,32 @@ def determinise(auto: dict) -> dict:
 
 def renommage(auto: dict) -> dict:
     auto_renom = {
-        "alphabet": auto['alphabet'],
+        "alphabet": auto["alphabet"],
         "etats": [],
         "transitions": [],
         "I": set(),
-        "F": set()
+        "F": set(),
     }
     liste_etats = list(auto["etats"])
 
-    for etat_initial in auto['I']:
-         auto_renom['I'].add(liste_etats.index(etat_initial))
+    for etat_initial in auto["I"]:
+        auto_renom["I"].add(liste_etats.index(etat_initial))
 
-    for etat_final in auto['F']:
-        auto_renom['F'].add(liste_etats.index(etat_final))
+    for etat_final in auto["F"]:
+        auto_renom["F"].add(liste_etats.index(etat_final))
 
     for i in range(len(liste_etats)):
-        auto_renom['etats'].append(i)
-    
-    for transition in auto['transitions']:
-        etat_i, etat_f = liste_etats.index(transition[0]), liste_etats.index(transition[2])
-        transition_renom = [auto_renom['etats'][etat_i], transition[1], auto_renom['etats'][etat_f]]
+        auto_renom["etats"].append(i)
+
+    for transition in auto["transitions"]:
+        etat_i, etat_f = liste_etats.index(transition[0]), liste_etats.index(
+            transition[2]
+        )
+        transition_renom = [
+            auto_renom["etats"][etat_i],
+            transition[1],
+            auto_renom["etats"][etat_f],
+        ]
 
         auto_renom["transitions"].append(transition_renom)
 
@@ -445,22 +288,22 @@ def inter(auto1: dict, auto2: dict) -> dict:
 
     if not deterministe(auto2):
         auto2 = renommage(determinise(auto2))
-    
+
     transitions = []
     initiaux = set()
     finaux = set()
 
-    for i1 in auto1['I']:
-        for i2 in auto2['I']:
-                initiaux.add((i1, i2))
+    for i1 in auto1["I"]:
+        for i2 in auto2["I"]:
+            initiaux.add((i1, i2))
 
     sorties = set(initiaux)
 
     ajout = True
     while ajout:
         ajout = False
-        for transition_a in auto1['transitions']:
-            for transition_b in auto2['transitions']:
+        for transition_a in auto1["transitions"]:
+            for transition_b in auto2["transitions"]:
                 if transition_a[1] == transition_b[1]:
                     if (transition_a[0], transition_b[0]) not in sorties:
                         continue
@@ -468,25 +311,26 @@ def inter(auto1: dict, auto2: dict) -> dict:
                     ajout = sortie not in sorties
                     sorties.add((transition_a[2], transition_b[2]))
 
-    for transition_a in auto1['transitions']:
-        for transition_b in auto2['transitions']:
+    for transition_a in auto1["transitions"]:
+        for transition_b in auto2["transitions"]:
             if transition_a[1] == transition_b[1]:
-                entree =(transition_a[0], transition_b[0])
+                entree = (transition_a[0], transition_b[0])
 
                 if entree in sorties:
-                    transitions.append([entree, transition_a[1], (transition_a[2], transition_b[2])])
+                    transitions.append(
+                        [entree, transition_a[1], (transition_a[2], transition_b[2])]
+                    )
 
-
-    for f1 in auto1['F']:
-        for f2 in auto2['F']:
+    for f1 in auto1["F"]:
+        for f2 in auto2["F"]:
             finaux.add((f1, f2))
 
     auto_inter = {
-        "alphabet": auto1['alphabet'] & auto2['alphabet'],
+        "alphabet": auto1["alphabet"] & auto2["alphabet"],
         "etats": set(),
         "transitions": transitions,
         "I": initiaux,
-        "F": finaux
+        "F": finaux,
     }
 
     ajoute_etats(auto_inter)
@@ -496,11 +340,179 @@ def inter(auto1: dict, auto2: dict) -> dict:
 
 def ajoute_etats(auto: dict) -> dict:
     """
-    Prend en paramètre un automate avec des transitions et rajoute ses etats manquants 
+    Prend en paramètre un automate avec des transitions et rajoute ses etats manquants
     """
-    for transition in auto['transitions']:
-        auto['etats'].add(transition[0])
-        auto['etats'].add(transition[2]) 
+    for transition in auto["transitions"]:
+        auto["etats"].add(transition[0])
+        auto["etats"].add(transition[2])
+
+
+def deterministe(auto: dict) -> bool:
+    transitions_vus = dict()
+
+    for etat in auto["etats"]:
+        transitions_vus[etat] = dict()
+
+        for lettre in auto["alphabet"]:
+            transitions_vus[etat][lettre] = 0
+
+    for transition in auto["transitions"]:
+        etat, lettre = transition[0], transition[1]
+
+        if transitions_vus[etat][lettre] == 0:
+            transitions_vus[etat][lettre] = 1
+
+        else:
+            return False
+
+    return True
+
+
+def determinise(auto: dict) -> dict:
+
+    depart = frozenset(auto["I"])
+
+    a_faire = [depart]
+    faits = set([depart])
+
+    transitions = list(auto["transitions"])
+
+    nouvelles_transtions = []
+
+    while len(a_faire) > 0:
+        etat = a_faire.pop()
+
+        for lettre in auto["alphabet"]:
+            nouvel_etat = set()
+            for t in transitions:
+                if t[0] in etat and t[1] == lettre:
+                    nouvel_etat.add(t[2])
+            val = frozenset(nouvel_etat)
+            if len(val) == 0:
+                continue
+
+            transitions.append([etat, lettre, val])
+
+            nouvelles_transtions.append([etat, lettre, val])
+
+            if val not in faits:
+                a_faire.append(val)
+                faits.add(val)
+
+    etats_finaux = set()
+
+    for transition in nouvelles_transtions:
+        if len(auto["F"] & transition[2]) > 0:
+            etats_finaux.add(transition[2])
+
+    return {
+        "alphabet": set(auto["alphabet"]),
+        "etats": faits,
+        "transitions": nouvelles_transtions,
+        "I": [depart],
+        "F": etats_finaux,
+    }
+
+
+def renommage(auto: dict) -> dict:
+    auto_renom = {
+        "alphabet": auto["alphabet"],
+        "etats": [],
+        "transitions": [],
+        "I": set(),
+        "F": set(),
+    }
+    liste_etats = list(auto["etats"])
+
+    for etat_initial in auto["I"]:
+        auto_renom["I"].add(liste_etats.index(etat_initial))
+
+    for etat_final in auto["F"]:
+        auto_renom["F"].add(liste_etats.index(etat_final))
+
+    for i in range(len(liste_etats)):
+        auto_renom["etats"].append(i)
+
+    for transition in auto["transitions"]:
+        etat_i, etat_f = liste_etats.index(transition[0]), liste_etats.index(
+            transition[2]
+        )
+        transition_renom = [
+            auto_renom["etats"][etat_i],
+            transition[1],
+            auto_renom["etats"][etat_f],
+        ]
+
+        auto_renom["transitions"].append(transition_renom)
+
+    auto_renom["etats"] = set(auto_renom["etats"])
+
+    return auto_renom
+
+
+def inter(auto1: dict, auto2: dict) -> dict:
+    if not deterministe(auto1):
+        auto1 = renommage(determinise(auto1))
+
+    if not deterministe(auto2):
+        auto2 = renommage(determinise(auto2))
+
+    transitions = []
+    initiaux = set()
+    finaux = set()
+
+    for i1 in auto1["I"]:
+        for i2 in auto2["I"]:
+            initiaux.add((i1, i2))
+
+    sorties = set(initiaux)
+
+    ajout = True
+    while ajout:
+        ajout = False
+        for transition_a in auto1["transitions"]:
+            for transition_b in auto2["transitions"]:
+                if transition_a[1] == transition_b[1]:
+                    if (transition_a[0], transition_b[0]) not in sorties:
+                        continue
+                    sortie = (transition_a[2], transition_b[2])
+                    ajout = sortie not in sorties
+                    sorties.add((transition_a[2], transition_b[2]))
+
+    for transition_a in auto1["transitions"]:
+        for transition_b in auto2["transitions"]:
+            if transition_a[1] == transition_b[1]:
+                entree = (transition_a[0], transition_b[0])
+
+                if entree in sorties:
+                    transitions.append(
+                        [entree, transition_a[1], (transition_a[2], transition_b[2])]
+                    )
+
+    for f1 in auto1["F"]:
+        for f2 in auto2["F"]:
+            finaux.add((f1, f2))
+
+    auto_inter = {
+        "alphabet": auto1["alphabet"] & auto2["alphabet"],
+        "etats": set(),
+        "transitions": transitions,
+        "I": initiaux,
+        "F": finaux,
+    }
+
+    ajoute_etats(auto_inter)
+
+    return auto_inter
+
+
+def ajoute_etats(auto: dict) -> dict:
+    """
+    Prend en paramètre un automate avec des transitions et rajoute ses etats manquants
+    """
+    for transition in auto["transitions"]:
+        auto["etats"].add(transition[0])
+        auto["etats"].add(transition[2])
 
 
 def difference(auto1: dict, auto2: dict) -> dict:
@@ -511,23 +523,23 @@ def difference(auto1: dict, auto2: dict) -> dict:
 
     auto_difference = inter(auto1, auto2)
 
-    liste_etats_finaux = list(auto_difference['F'])
+    liste_etats_finaux = list(auto_difference["F"])
     i = 0
     fin = len(liste_etats_finaux)
 
     while i < fin:
         etat_final = liste_etats_finaux[i]
 
-        if etat_final[1] in auto2['F']:
-            auto_difference['F'].remove(etat_final)
-        
+        if etat_final[1] in auto2["F"]:
+            auto_difference["F"].remove(etat_final)
+
         i += 1
-    
-    for transition in auto_difference['transitions']:
-        if transition[0][0] in auto1['F'] and transition[0][1] not in auto2['F']:
-            auto_difference['F'].add(transition[0])
-        elif transition[2][0] in auto1['F'] and transition[2][1] not in auto2['F']:
-            auto_difference['F'].add(transition[2])
+
+    for transition in auto_difference["transitions"]:
+        if transition[0][0] in auto1["F"] and transition[0][1] not in auto2["F"]:
+            auto_difference["F"].add(transition[0])
+        elif transition[2][0] in auto1["F"] and transition[2][1] not in auto2["F"]:
+            auto_difference["F"].add(transition[2])
 
     return auto_difference
 
@@ -649,27 +661,28 @@ def mirroir(auto: dict) -> dict:
 
     return auto_mirroir
 
+
 def position_classe(classes: dict, etat: int):
     for key, etats in classes.items():
         if etat in etats:
             return key
 
+
 def equivalence(auto: dict) -> list:
-    classes = {
-        'AUTRES': auto['etats'] - auto['F'],
-        'FINAUX': auto['F']
-    }
+    classes = {"AUTRES": auto["etats"] - auto["F"], "FINAUX": auto["F"]}
     taille = 0
 
     while taille != len(classes):
         taille = len(classes)
         storage = {}
 
-        for lettre in auto['alphabet']:
-            for transition in auto['transitions']:
+        for lettre in auto["alphabet"]:
+            for transition in auto["transitions"]:
                 if transition[1] == lettre:
                     if transition[0] not in storage:
-                        storage[transition[0]] = [position_classe(classes, transition[0])]
+                        storage[transition[0]] = [
+                            position_classe(classes, transition[0])
+                        ]
                     position = position_classe(classes, transition[2])
                     storage[transition[0]].append((lettre, position))
 
@@ -685,62 +698,74 @@ def equivalence(auto: dict) -> list:
 
     return resultat
 
+
 def vers_classe(etat: int, classes: list) -> tuple:
     for classe in classes:
         if etat in classe:
             return classe
+
 
 def minimise(auto: dict):
     classes_equivalences = equivalence(auto)
 
     initiaux = set()
     finaux = set()
-    
-    for initial in auto['I']:
+
+    for initial in auto["I"]:
         initiaux.add(vers_classe(initial, classes_equivalences))
 
-    for final in auto['F']:
+    for final in auto["F"]:
         finaux.add(vers_classe(final, classes_equivalences))
 
     transitions = []
 
-    for transition in auto['transitions']:
-        nouvelle_transition = [vers_classe(transition[0], classes_equivalences), transition[1], vers_classe(transition[2], classes_equivalences)]
+    for transition in auto["transitions"]:
+        nouvelle_transition = [
+            vers_classe(transition[0], classes_equivalences),
+            transition[1],
+            vers_classe(transition[2], classes_equivalences),
+        ]
 
-        if nouvelle_transition not in transitions: 
+        if nouvelle_transition not in transitions:
             transitions.append(nouvelle_transition)
-    
+
     return {
-        'alphabet': set(auto['alphabet']),
-        'etats': set(classes_equivalences),
-        'I': initiaux,
-        'F': finaux,
-        'transitions': transitions
+        "alphabet": set(auto["alphabet"]),
+        "etats": set(classes_equivalences),
+        "I": initiaux,
+        "F": finaux,
+        "transitions": transitions,
     }
 
 
 def renommage(auto: dict) -> dict:
     auto_renom = {
-        "alphabet": auto['alphabet'],
+        "alphabet": auto["alphabet"],
         "etats": [],
         "transitions": [],
         "I": set(),
-        "F": set()
+        "F": set(),
     }
     liste_etats = list(auto["etats"])
 
-    for etat_initial in auto['I']:
-         auto_renom['I'].add(liste_etats.index(etat_initial))
+    for etat_initial in auto["I"]:
+        auto_renom["I"].add(liste_etats.index(etat_initial))
 
-    for etat_final in auto['F']:
-        auto_renom['F'].add(liste_etats.index(etat_final))
+    for etat_final in auto["F"]:
+        auto_renom["F"].add(liste_etats.index(etat_final))
 
     for i in range(len(liste_etats)):
-        auto_renom['etats'].append(i)
-    
-    for transition in auto['transitions']:
-        etat_i, etat_f = liste_etats.index(transition[0]), liste_etats.index(transition[2])
-        transition_renom = [auto_renom['etats'][etat_i], transition[1], auto_renom['etats'][etat_f]]
+        auto_renom["etats"].append(i)
+
+    for transition in auto["transitions"]:
+        etat_i, etat_f = liste_etats.index(transition[0]), liste_etats.index(
+            transition[2]
+        )
+        transition_renom = [
+            auto_renom["etats"][etat_i],
+            transition[1],
+            auto_renom["etats"][etat_f],
+        ]
 
         auto_renom["transitions"].append(transition_renom)
 
@@ -755,22 +780,22 @@ def inter(auto1: dict, auto2: dict) -> dict:
 
     if not deterministe(auto2):
         auto2 = renommage(determinise(auto2))
-    
+
     transitions = []
     initiaux = set()
     finaux = set()
 
-    for i1 in auto1['I']:
-        for i2 in auto2['I']:
-                initiaux.add((i1, i2))
+    for i1 in auto1["I"]:
+        for i2 in auto2["I"]:
+            initiaux.add((i1, i2))
 
     sorties = set(initiaux)
 
     ajout = True
     while ajout:
         ajout = False
-        for transition_a in auto1['transitions']:
-            for transition_b in auto2['transitions']:
+        for transition_a in auto1["transitions"]:
+            for transition_b in auto2["transitions"]:
                 if transition_a[1] == transition_b[1]:
                     if (transition_a[0], transition_b[0]) not in sorties:
                         continue
@@ -778,25 +803,26 @@ def inter(auto1: dict, auto2: dict) -> dict:
                     ajout = sortie not in sorties
                     sorties.add((transition_a[2], transition_b[2]))
 
-    for transition_a in auto1['transitions']:
-        for transition_b in auto2['transitions']:
+    for transition_a in auto1["transitions"]:
+        for transition_b in auto2["transitions"]:
             if transition_a[1] == transition_b[1]:
-                entree =(transition_a[0], transition_b[0])
+                entree = (transition_a[0], transition_b[0])
 
                 if entree in sorties:
-                    transitions.append([entree, transition_a[1], (transition_a[2], transition_b[2])])
+                    transitions.append(
+                        [entree, transition_a[1], (transition_a[2], transition_b[2])]
+                    )
 
-
-    for f1 in auto1['F']:
-        for f2 in auto2['F']:
+    for f1 in auto1["F"]:
+        for f2 in auto2["F"]:
             finaux.add((f1, f2))
 
     auto_inter = {
-        "alphabet": auto1['alphabet'] & auto2['alphabet'],
+        "alphabet": auto1["alphabet"] & auto2["alphabet"],
         "etats": set(),
         "transitions": transitions,
         "I": initiaux,
-        "F": finaux
+        "F": finaux,
     }
 
     ajoute_etats(auto_inter)
@@ -806,79 +832,87 @@ def inter(auto1: dict, auto2: dict) -> dict:
 
 def ajoute_etats(auto: dict) -> dict:
     """
-    Prend en paramètre un automate avec des transitions et rajoute ses etats manquants 
+    Prend en paramètre un automate avec des transitions et rajoute ses etats manquants
     """
-    for transition in auto['transitions']:
-        auto['etats'].add(transition[0])
-        auto['etats'].add(transition[2]) 
+    for transition in auto["transitions"]:
+        auto["etats"].add(transition[0])
+        auto["etats"].add(transition[2])
 
 
 def deterministe(auto: dict) -> bool:
     transitions_vus = dict()
 
-    for etat in auto['etats']:
+    for etat in auto["etats"]:
         transitions_vus[etat] = dict()
 
-        for lettre in auto['alphabet']:
+        for lettre in auto["alphabet"]:
             transitions_vus[etat][lettre] = 0
 
-    for transition in auto['transitions']:
+    for transition in auto["transitions"]:
         etat, lettre = transition[0], transition[1]
 
         if transitions_vus[etat][lettre] == 0:
-            transitions_vus[etat][lettre] = 1 
+            transitions_vus[etat][lettre] = 1
 
-        else : return False
+        else:
+            return False
 
     return True
 
 
 def determinise(auto: dict) -> dict:
     auto_det = {
-        "alphabet": auto['alphabet'],
+        "alphabet": auto["alphabet"],
         "etats": set(),
         "transitions": [],
         "I": [],
-        "F": []
+        "F": [],
     }
 
-    if isinstance(auto['I'], list):
-        auto_det['I'].append(auto['I'])
+    if isinstance(auto["I"], list):
+        auto_det["I"].append(auto["I"])
 
     transi_vus = []
 
-    for transition in auto['transitions']:
+    for transition in auto["transitions"]:
         transi = [transition[0], transition[1]]
 
         if transi in transi_vus:
             # jsp
             pass
 
-        else: transi_vus.append([transition[0], transition[1]])
+        else:
+            transi_vus.append([transition[0], transition[1]])
 
 
 def renommage(auto: dict) -> dict:
     auto_renom = {
-        "alphabet": auto['alphabet'],
+        "alphabet": auto["alphabet"],
         "etats": [],
         "transitions": [],
         "I": set(),
-        "F": set()
+        "F": set(),
     }
     liste_etats = list(auto["etats"])
 
-    for etat_initial in auto['I']:
-         auto_renom['I'].add(liste_etats.index(etat_initial))
+    for etat_initial in auto["I"]:
+        auto_renom["I"].add(liste_etats.index(etat_initial))
 
-    for etat_final in auto['F']:
-        auto_renom['F'].add(liste_etats.index(etat_final))
+    for etat_final in auto["F"]:
+        auto_renom["F"].add(liste_etats.index(etat_final))
 
     for i in range(len(liste_etats)):
-        auto_renom['etats'].append(i)
-    
-    for transition in auto['transitions']:
-        etat_i, etat_f = liste_etats.index(transition[0]), liste_etats.index(transition[2])
-        transition_renom = [auto_renom['etats'][etat_i], transition[1], auto_renom['etats'][etat_f]]
+        auto_renom["etats"].append(i)
+
+    for transition in auto["transitions"]:
+        etat_i, etat_f = liste_etats.index(transition[0]), liste_etats.index(
+            transition[2]
+        )
+        transition_renom = [
+            auto_renom["etats"][etat_i],
+            transition[1],
+            auto_renom["etats"][etat_f],
+        ]
 
         auto_renom["transitions"].append(transition_renom)
 
@@ -893,22 +927,22 @@ def inter(auto1: dict, auto2: dict) -> dict:
 
     if not deterministe(auto2):
         auto2 = renommage(determinise(auto2))
-    
+
     transitions = []
     initiaux = set()
     finaux = set()
 
-    for i1 in auto1['I']:
-        for i2 in auto2['I']:
-                initiaux.add((i1, i2))
+    for i1 in auto1["I"]:
+        for i2 in auto2["I"]:
+            initiaux.add((i1, i2))
 
     sorties = set(initiaux)
 
     ajout = True
     while ajout:
         ajout = False
-        for transition_a in auto1['transitions']:
-            for transition_b in auto2['transitions']:
+        for transition_a in auto1["transitions"]:
+            for transition_b in auto2["transitions"]:
                 if transition_a[1] == transition_b[1]:
                     if (transition_a[0], transition_b[0]) not in sorties:
                         continue
@@ -916,25 +950,26 @@ def inter(auto1: dict, auto2: dict) -> dict:
                     ajout = sortie not in sorties
                     sorties.add((transition_a[2], transition_b[2]))
 
-    for transition_a in auto1['transitions']:
-        for transition_b in auto2['transitions']:
+    for transition_a in auto1["transitions"]:
+        for transition_b in auto2["transitions"]:
             if transition_a[1] == transition_b[1]:
-                entree =(transition_a[0], transition_b[0])
+                entree = (transition_a[0], transition_b[0])
 
                 if entree in sorties:
-                    transitions.append([entree, transition_a[1], (transition_a[2], transition_b[2])])
+                    transitions.append(
+                        [entree, transition_a[1], (transition_a[2], transition_b[2])]
+                    )
 
-
-    for f1 in auto1['F']:
-        for f2 in auto2['F']:
+    for f1 in auto1["F"]:
+        for f2 in auto2["F"]:
             finaux.add((f1, f2))
 
     auto_inter = {
-        "alphabet": auto1['alphabet'] & auto2['alphabet'],
+        "alphabet": auto1["alphabet"] & auto2["alphabet"],
         "etats": set(),
         "transitions": transitions,
         "I": initiaux,
-        "F": finaux
+        "F": finaux,
     }
 
     ajoute_etats(auto_inter)
@@ -944,11 +979,11 @@ def inter(auto1: dict, auto2: dict) -> dict:
 
 def ajoute_etats(auto: dict) -> dict:
     """
-    Prend en paramètre un automate avec des transitions et rajoute ses etats manquants 
+    Prend en paramètre un automate avec des transitions et rajoute ses etats manquants
     """
-    for transition in auto['transitions']:
-        auto['etats'].add(transition[0])
-        auto['etats'].add(transition[2]) 
+    for transition in auto["transitions"]:
+        auto["etats"].add(transition[0])
+        auto["etats"].add(transition[2])
 
 
 def difference(auto1: dict, auto2: dict) -> dict:
@@ -959,23 +994,23 @@ def difference(auto1: dict, auto2: dict) -> dict:
 
     auto_difference = inter(auto1, auto2)
 
-    liste_etats_finaux = list(auto_difference['F'])
+    liste_etats_finaux = list(auto_difference["F"])
     i = 0
     fin = len(liste_etats_finaux)
 
     while i < fin:
         etat_final = liste_etats_finaux[i]
 
-        if etat_final[1] in auto2['F']:
-            auto_difference['F'].remove(etat_final)
-        
+        if etat_final[1] in auto2["F"]:
+            auto_difference["F"].remove(etat_final)
+
         i += 1
-    
-    for transition in auto_difference['transitions']:
-        if transition[0][0] in auto1['F'] and transition[0][1] not in auto2['F']:
-            auto_difference['F'].add(transition[0])
-        elif transition[2][0] in auto1['F'] and transition[2][1] not in auto2['F']:
-            auto_difference['F'].add(transition[2])
+
+    for transition in auto_difference["transitions"]:
+        if transition[0][0] in auto1["F"] and transition[0][1] not in auto2["F"]:
+            auto_difference["F"].add(transition[0])
+        elif transition[2][0] in auto1["F"] and transition[2][1] not in auto2["F"]:
+            auto_difference["F"].add(transition[2])
 
     return auto_difference
 
@@ -1097,27 +1132,28 @@ def mirroir(auto: dict) -> dict:
 
     return auto_mirroir
 
+
 def position_classe(classes: dict, etat: int):
     for key, etats in classes.items():
         if etat in etats:
             return key
 
+
 def equivalence(auto: dict) -> list:
-    classes = {
-        'AUTRES': auto['etats'] - auto['F'],
-        'FINAUX': auto['F']
-    }
+    classes = {"AUTRES": auto["etats"] - auto["F"], "FINAUX": auto["F"]}
     taille = 0
 
     while taille != len(classes):
         taille = len(classes)
         storage = {}
 
-        for lettre in auto['alphabet']:
-            for transition in auto['transitions']:
+        for lettre in auto["alphabet"]:
+            for transition in auto["transitions"]:
                 if transition[1] == lettre:
                     if transition[0] not in storage:
-                        storage[transition[0]] = [position_classe(classes, transition[0])]
+                        storage[transition[0]] = [
+                            position_classe(classes, transition[0])
+                        ]
                     position = position_classe(classes, transition[2])
                     storage[transition[0]].append((lettre, position))
 
@@ -1133,42 +1169,48 @@ def equivalence(auto: dict) -> list:
 
     return resultat
 
+
 def vers_classe(etat: int, classes: list) -> tuple:
     for classe in classes:
         if etat in classe:
             return classe
+
 
 def minimise(auto: dict):
     classes_equivalences = equivalence(auto)
 
     initiaux = set()
     finaux = set()
-    
-    for initial in auto['I']:
+
+    for initial in auto["I"]:
         initiaux.add(vers_classe(initial, classes_equivalences))
 
-    for final in auto['F']:
+    for final in auto["F"]:
         finaux.add(vers_classe(final, classes_equivalences))
 
     transitions = []
 
-    for transition in auto['transitions']:
-        nouvelle_transition = [vers_classe(transition[0], classes_equivalences), transition[1], vers_classe(transition[2], classes_equivalences)]
+    for transition in auto["transitions"]:
+        nouvelle_transition = [
+            vers_classe(transition[0], classes_equivalences),
+            transition[1],
+            vers_classe(transition[2], classes_equivalences),
+        ]
 
-        if nouvelle_transition not in transitions: 
+        if nouvelle_transition not in transitions:
             transitions.append(nouvelle_transition)
-    
+
     return {
-        'alphabet': set(auto['alphabet']),
-        'etats': set(classes_equivalences),
-        'I': initiaux,
-        'F': finaux,
-        'transitions': transitions
+        "alphabet": set(auto["alphabet"]),
+        "etats": set(classes_equivalences),
+        "I": initiaux,
+        "F": finaux,
+        "transitions": transitions,
     }
 
 
 if __name__ == "__main__":
-    #defauto()
+    # defauto()
 
     auto = {
         "alphabet": {"a", "b"},
@@ -1244,27 +1286,48 @@ if __name__ == "__main__":
     print(deterministe(auto2))
 
     auto2_det = {
-        'alphabet': {'a', 'b'}, 'I': [[0]],
-        'transitions': [[[0], 'a', [0, 1]], [[0, 1], 'a', [0, 1]], [[0, 1], 'b', [1]], [[1], 'a', [1]], [[1], 'b', [1]]],
-        'etats': [[0], [0, 1], [1]], 'F': [[0, 1], [1]]
+        "alphabet": {"a", "b"},
+        "I": [[0]],
+        "transitions": [
+            [[0], "a", [0, 1]],
+            [[0, 1], "a", [0, 1]],
+            [[0, 1], "b", [1]],
+            [[1], "a", [1]],
+            [[1], "b", [1]],
+        ],
+        "etats": [[0], [0, 1], [1]],
+        "F": [[0, 1], [1]],
     }
 
-    print(renommage(auto2_det)) # à modifier par print(renommage(determinise(auto2_det)))
+    print(
+        renommage(auto2_det)
+    )  # à modifier par print(renommage(determinise(auto2_det)))
 
     auto4 = {
-        "alphabet":{'a','b'},
-        "etats": {0,1,2,},
-        "transitions":[[0,'a',1],[1,'b',2],[2,'b',2],[2,'a',2]], 
-        "I":{0},
-        "F":{2}
+        "alphabet": {"a", "b"},
+        "etats": {
+            0,
+            1,
+            2,
+        },
+        "transitions": [[0, "a", 1], [1, "b", 2], [2, "b", 2], [2, "a", 2]],
+        "I": {0},
+        "F": {2},
     }
-    
+
     auto5 = {
-        "alphabet":{'a','b'},
-        "etats": {0,1,2},
-        "transitions":[[0,'a',0],[0,'b',1],[1,'a',1],[1,'b',2],[2,'a',2],[2,'b',0]],
-        "I":{0},
-        "F":{0,1}
+        "alphabet": {"a", "b"},
+        "etats": {0, 1, 2},
+        "transitions": [
+            [0, "a", 0],
+            [0, "b", 1],
+            [1, "a", 1],
+            [1, "b", 2],
+            [2, "a", 2],
+            [2, "b", 0],
+        ],
+        "I": {0},
+        "F": {0, 1},
     }
 
     print("\nIntersection :")
