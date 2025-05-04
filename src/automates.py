@@ -457,18 +457,6 @@ def inter(auto1: dict, auto2: dict) -> dict:
     return auto_inter
 
 
-def debut_transition(auto: dict) -> list:
-    """
-    Prend en paramètre un automate et renvoie une liste des débuts de transition: [p, a]
-    """
-    debut_transi = []
-
-    for transition in auto['transitions']:
-        debut_transi.append(transition[:2])
-    
-    return debut_transi
-
-
 def ajoute_etats(auto: dict) -> dict:
     """
     Prend en paramètre un automate avec des transitions et rajoute ses etats manquants 
