@@ -27,6 +27,7 @@ def defauto_etats() -> set:
     texte = ""
     while texte != "fin":
         n = None
+        # Boucle tant que la valeur entrée n'est pas un nombre
         while n == None:
             texte = input("> ")
             if texte == "fin":
@@ -55,6 +56,7 @@ def defauto_etats_selection(etats: set, type: str) -> set:
     texte = ""
     while texte != "fin":
         n = None
+        # Boucle tant que la valeur entrée n'est pas un nombre
         while n == None:
             texte = input("> ")
             if texte == "fin":
@@ -85,7 +87,8 @@ def defauto_transition_pour(etat: int, etats: set, alphabet: set) -> list:
     while True:
         lettre = ""
         sortie = ""
-        print(f"Saisissez la lettre de la transition parmis {", ".join(alphabet)}")
+        print(f"Saisissez la lettre de la transition parmis {', '.join(alphabet)}")
+        # Boucle tant que la valeur entrée n'est pas dans l'alphabet
         while lettre not in alphabet:
             lettre = input("> ")
         print("Saisissez l'état de sortie de la transition")
@@ -117,7 +120,7 @@ def defauto_transitions(etats: set, alphabet: set) -> list:
     transitions = []
     while True:
         print(
-            f'Choisissez un état parmis {", ".join(map(str, etats))} ou \'fin\' pour stopper la saisie'
+            f'Choisissez un état parmis {', '.join(map(str, etats))} ou \'fin\' pour stopper la saisie'
         )
         texte = ""
         while texte not in etats:
@@ -239,9 +242,11 @@ def determinise(auto: dict) -> dict:
 
     nouvelles_transtions = []
 
+    # Parcours tous les états non marqués
     while len(a_faire) > 0:
         etat = a_faire.pop()
 
+        # Cherche les transitions de l'état et créer un nouvel état
         for lettre in auto["alphabet"]:
             nouvel_etat = set()
             for t in transitions:
@@ -261,6 +266,7 @@ def determinise(auto: dict) -> dict:
 
     etats_finaux = set()
 
+    # Calcule les étas finaux
     for transition in nouvelles_transtions:
         if len(auto["F"] & transition[2]) > 0:
             etats_finaux.add(transition[2])
@@ -327,12 +333,14 @@ def inter(auto1: dict, auto2: dict) -> dict:
     initiaux = set()
     finaux = set()
 
+    # Caclule les états initiaux
     for i1 in auto1["I"]:
         for i2 in auto2["I"]:
             initiaux.add((i1, i2))
 
     sorties = set(initiaux)
 
+    # Calcules les états pouvant être parcourus dans l'automate produits
     ajout = True
     while ajout:
         ajout = False
@@ -345,16 +353,19 @@ def inter(auto1: dict, auto2: dict) -> dict:
                     ajout = sortie not in sorties
                     sorties.add((transition_a[2], transition_b[2]))
 
+    # Parcours les transitions
     for transition_a in auto1["transitions"]:
         for transition_b in auto2["transitions"]:
             if transition_a[1] == transition_b[1]:
                 entree = (transition_a[0], transition_b[0])
 
+                # Vérifie que l'état est accessible
                 if entree in sorties:
                     transitions.append(
                         [entree, transition_a[1], (transition_a[2], transition_b[2])]
                     )
 
+    # Parcours les états finaux
     for f1 in auto1["F"]:
         for f2 in auto2["F"]:
             finaux.add((f1, f2))
@@ -367,6 +378,7 @@ def inter(auto1: dict, auto2: dict) -> dict:
         "F": finaux,
     }
 
+    # Complète l'ensemble des états de l'automate
     ajoute_etats(auto_inter)
 
     return auto_inter
@@ -419,6 +431,7 @@ def langage_accept(automate: dict, n: int) -> set:
     """
     initial = {}
 
+    # Construit le dictionnaire contenant les lettres en fonction des états
     for etat in automate["I"]:
         for transition in automate["transitions"]:
             if transition[0] == etat:
@@ -441,6 +454,8 @@ def langage_accept_rec(automate: dict, positions: dict, resultat_mots: set, n: i
 
     nouvelle_positions = {}
 
+    # Construit le dictionnaire nouvelle_positions
+    # de manière nouvelles_positions[transition] = positions[transition] * lettres_acceptés
     for etat, mots in positions.items():
         for mot in mots:
             for transition in automate["transitions"]:
@@ -464,11 +479,13 @@ def liste_transitions_manquantes(auto: dict) -> dict:
     """
     manquants = {}
 
+    # Construit le dictionnaire avec tous les états en clef et l'ensemble de l'alphabet en valeur
     for etat in auto["etats"]:
         manquants[etat] = set()
         for lettre in auto["alphabet"]:
             manquants[etat].add(lettre)
 
+    # Supprime les lettres acceptés par chaque état
     for etat, lettres in manquants.items():
         for transition in auto["transitions"]:
             for lettre in set(lettres):
@@ -500,6 +517,7 @@ def complete(auto: dict) -> dict:
     puis = max(auto_modif["etats"]) + 1
     auto_modif["etats"].add(puis)
 
+    # Ajoute les transitions manquantes
     for etat, lettres in manquants.items():
         for lettre in lettres:
             auto_modif["transitions"].append([etat, lettre, puis])
@@ -513,6 +531,7 @@ def complement(auto: dict) -> dict:
     """
     auto_complet = complete(auto)
 
+    # Inverse les états finaux
     for etat in auto_complet["etats"]:
         if etat in auto_complet["F"]:
             auto_complet["F"].remove(etat)
@@ -556,8 +575,10 @@ def mirroir(auto: dict) -> dict:
     """
     auto_mirroir = dict(auto)
 
+    # Inverse les états initiaux et finaux
     auto_mirroir["I"], auto_mirroir["F"] = auto_mirroir["F"], auto_mirroir["I"]
 
+    # Inverse le sens des transitions
     for transiton in auto_mirroir["transitions"]:
         transiton[0], transiton[2] = transiton[2], transiton[0]
 
@@ -580,10 +601,12 @@ def equivalence(auto: dict) -> list:
     classes = {"AUTRES": auto["etats"] - auto["F"], "FINAUX": auto["F"]}
     taille = 0
 
+    # Boucle tant que la classe change
     while taille != len(classes):
         taille = len(classes)
         storage = {}
 
+        # Calcule la liste des équivalence par etat et par lettre
         for lettre in auto["alphabet"]:
             for transition in auto["transitions"]:
                 if transition[1] == lettre:
@@ -595,7 +618,7 @@ def equivalence(auto: dict) -> list:
                     storage[transition[0]].append((lettre, position))
 
         classes = {}
-
+        # Construit le dictionnaire des classes d'équivalence
         for etat, equivalence in storage.items():
             if tuple(equivalence) not in classes:
                 classes[tuple(equivalence)] = []
